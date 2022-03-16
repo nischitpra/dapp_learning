@@ -89,11 +89,13 @@ contract MultiSig {
     * need to make these private. but private methods cannot be called from public method? getting some weird error
     */
     // this is always called from vote function which is a public function 
+    // .call();
     function execProposal(Proposal storage proposal) private {
         if(!proposal.voters.length >= proposal.execThreshold) return;
         if(proposal.isExecuted) return;
         // make transaction to target contract
-        if(!proposal.targetContract.call.value(0)(proposal.targetMethodName, proposal.targetParams)) {
+        (bool status, bytes memory result) = proposal.targetContract.call(abi.encodeWithSignature(proposal.targetMethodName, proposal.targetParams));
+        if(!status) {
             require(true, "could not complete request to target contract");
         }
         proposal.isExecuted = true;
