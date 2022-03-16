@@ -45,7 +45,7 @@ contract MultiSig {
 
     // helper method to check if specific proposal exists by topic
     function doesProposalExist(string memory topic) public view returns (bool) {
-        return this.compareString(proposalMap[topic].topic, topic) ;
+        return this.compareString(proposalMap[topic].topic, topic);
     }
 
     function getEthBalance() public view returns (uint256) {
@@ -63,6 +63,7 @@ contract MultiSig {
         require(safeUsers[msg.sender] == true, "unauthorized User");
         // all keys exist in solidity
         Proposal storage proposal = proposalMap[topic];
+        require(proposal.topic == "","proposal already created");
         proposal.topic = topic;
         proposal.description = description;
         proposal.targetContract = targetContract;
@@ -91,7 +92,9 @@ contract MultiSig {
         if(!proposal.voters.length >= proposal.execThreshold) return;
         if(proposal.isExecuted) return;
         // make transaction to target contract
-        proposal.targetContract.call.gas(tx.gasprice + msg.gas).value(0)(proposal.targetMethodName, proposal.targetParams);
+        if(!proposal.targetContract.call.gas(tx.gasprice * msg.gas).value(0)(proposal.targetMethodName, proposal.targetParams)) {
+            require(true, "could not complete request to target contract");
+        }
         proposal.isExecuted = true;
     }
 
