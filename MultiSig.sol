@@ -61,6 +61,7 @@ contract MultiSig {
         uint execThreshold
     ) public {
         require(safeUsers[msg.sender] == true, "unauthorized User");
+        require(execThreshold <= 4 && execThreshold > 1, "impossible execution threshold");
         // all keys exist in solidity
         Proposal storage proposal = proposalMap[topic];
         require(proposal.topic == "","proposal already created");
