@@ -64,7 +64,7 @@ contract MultiSig {
         require(execThreshold <= 4 && execThreshold > 1, "impossible execution threshold");
         // all keys exist in solidity
         Proposal storage proposal = proposalMap[topic];
-        require(proposal.topic == "","proposal already created");
+        require(execThreshold == 0,"proposal already created");
         proposal.topic = topic;
         proposal.description = description;
         proposal.targetContract = targetContract;
@@ -93,14 +93,16 @@ contract MultiSig {
         if(!proposal.voters.length >= proposal.execThreshold) return;
         if(proposal.isExecuted) return;
         // make transaction to target contract
-        if(!proposal.targetContract.call.gas(tx.gasprice * msg.gas).value(0)(proposal.targetMethodName, proposal.targetParams)) {
-            require(false, "could not complete request to target contract");
+        if(!proposal.targetContract.call.value(0)(proposal.targetMethodName, proposal.targetParams)) {
+            require(true, "could not complete request to target contract");
         }
         proposal.isExecuted = true;
     }
 
-    function compareString(string memory s1, string memory s2) private returns (bool) {
-        return keccak256(abi.encodePacked(s1)) == keccak256(abi.encodePacked(s2));
+    function compareString(string memory s1, string memory s2) private pure returns (bool) {
+        bytes memory bs1 = bytes(s1);
+        bytes memory bs2 = bytes(s2);
+        return (bs1.length == bs2.length) && (keccak256(bs1) == keccak256(bs2));
     }
 
 }
