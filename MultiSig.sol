@@ -94,7 +94,7 @@ contract MultiSig {
         if(proposal.isExecuted) return;
         // make transaction to target contract
         if(!proposal.targetContract.call.gas(tx.gasprice * msg.gas).value(0)(proposal.targetMethodName, proposal.targetParams)) {
-            require(true, "could not complete request to target contract");
+            require(false, "could not complete request to target contract");
         }
         proposal.isExecuted = true;
     }
