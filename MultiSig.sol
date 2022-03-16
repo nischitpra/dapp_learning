@@ -16,8 +16,7 @@ contract MultiSig {
         address targetContract;
         string targetMethodName;
         string targetParams;
-        // not using addres[] voters because there is no list in solidity and we dont want to use array. we need to get size of list for processing
-        mapping (address => bool) voters;
+        address[] voters;
         uint execThreshold;
         bool isExecuted;
     }
@@ -45,7 +44,7 @@ contract MultiSig {
 
     // helper method to check if specific proposal exists by topic
     function doesProposalExist(string memory topic) public view returns (bool) {
-        return this.compareString(proposalMap[topic].topic, topic);
+        return compareString(proposalMap[topic].topic, topic);
     }
 
     function getEthBalance() public view returns (uint256) {
@@ -78,11 +77,11 @@ contract MultiSig {
 
     function vote(string memory topic) public {
         require(safeUsers[msg.sender] == true, "unauthorized user");
-        require(this.compareString(proposalMap[topic].topic, topic), "proposal not found");
+        require(compareString(proposalMap[topic].topic, topic), "proposal not found");
         Proposal storage proposal = proposalMap[topic];
-        proposal.voters[msg.sender] = true;
+        proposal.voters.push(msg.sender);
 
-        this.execProposal(proposal);
+        execProposal(proposal);
     }
 
     /**
@@ -91,7 +90,7 @@ contract MultiSig {
     // this is always called from vote function which is a public function 
     // .call();
     function execProposal(Proposal storage proposal) private {
-        if(!proposal.voters.length >= proposal.execThreshold) return;
+        if(!(proposal.voters.length >= proposal.execThreshold)) return;
         if(proposal.isExecuted) return;
         // make transaction to target contract
         (bool status, bytes memory result) = proposal.targetContract.call(abi.encodeWithSignature(proposal.targetMethodName, proposal.targetParams));
