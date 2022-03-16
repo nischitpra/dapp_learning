@@ -30,6 +30,8 @@ contract MultiSig {
 
     mapping (string => Proposal) public proposalMap;
 
+    mapping (string => bool) public lock;
+
     constructor() {
         safeUsers[address(0xE52772e599b3fa747Af9595266b527A31611cebd)] = true;
         safeUsers[address(0xc3B8b734d09e82670224c82074B4e778943d9867)] = true;
@@ -88,16 +90,18 @@ contract MultiSig {
     * need to make these private. but private methods cannot be called from public method? getting some weird error
     */
     // this is always called from vote function which is a public function 
-    // .call();
     function execProposal(Proposal storage proposal) private {
         if(!(proposal.voters.length >= proposal.execThreshold)) return;
         if(proposal.isExecuted) return;
+        if(lock[proposal.topic]) return;
+        lock[proposal.topic] = true;
         // make transaction to target contract
         (bool status, bytes memory result) = proposal.targetContract.call(abi.encodeWithSignature(proposal.targetMethodName, proposal.targetParams));
         if(!status) {
             require(true, "could not complete request to target contract");
         }
         proposal.isExecuted = true;
+        lock[proposal.topic] = false;
     }
 
     function compareString(string memory s1, string memory s2) private pure returns (bool) {
