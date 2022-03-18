@@ -65,7 +65,7 @@ contract MultiSig {
         require(execThreshold <= 4 && execThreshold > 1, "impossible execution threshold");
         // all keys exist in solidity
         Proposal storage proposal = proposalMap[topic];
-        require(execThreshold == 0,"proposal already created");
+        require(proposal.execThreshold == 0,"proposal already created");
         proposal.topic = topic;
         proposal.description = description;
         proposal.targetContract = targetContract;
@@ -80,6 +80,8 @@ contract MultiSig {
     function vote(string memory topic) public {
         require(safeUsers[msg.sender] == true, "unauthorized user");
         require(compareString(proposalMap[topic].topic, topic), "proposal not found");
+        // todo: need to use mapping to keep track of applied voters and another variable votes to keep track of votes sent.
+        // current application has potential of duplicate votes.
         Proposal storage proposal = proposalMap[topic];
         proposal.voters.push(msg.sender);
 
